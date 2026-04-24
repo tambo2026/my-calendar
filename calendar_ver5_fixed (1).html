@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>営業日カレンダー Ver5</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f4f4;
+margin:20px
+}
+
+.container{
+max-width:1100px;
+margin:auto
+}
+
+.card{
+background:white;
+padding:16px;
+border-radius:10px;
+margin-bottom:15px
+}
+
+button{
+cursor:pointer;
+margin-right:6px
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px
+}
+
+.header{
+font-weight:bold;
+text-align:center
+}
+
+.cell{
+border:1px solid #ddd;
+border-radius:6px;
+min-height:95px;
+padding:4px;
+background:white;
+font-size:12px
+}
+
+.today{
+background:#fff3a0
+}
+
+.date{
+font-weight:bold
+}
+
+.holiday{
+color:red
+}
+
+.task{
+background:#e2f0ff;
+border-radius:4px;
+padding:2px;
+margin-top:2px;
+cursor:grab
+}
+
+.event{
+background:#ffe3bf;
+border-radius:4px;
+padding:2px;
+margin-top:2px;
+display:flex;
+justify-content:space-between;
+cursor:grab
+}
+
+.event button{
+border:none;
+background:none;
+color:red
+}
+
+.hidden{
+display:none
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>営業日カレンダー Ver5</h1>
+
+<button onclick="downloadBackup()">バックアップ保存</button>
+
+<input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(event)">
+
+<button onclick="document.getElementById('restoreFile').click()">バックアップ復元</button>
+
+<button onclick="showPage('calendar')">カレンダー</button>
+<button onclick="showPage('holiday')">祝日管理</button>
+
+<div id="calendarPage">
+
+<div class="card">
+
+<h3>営業日タスク追加</h3>
+
+<form id="taskForm">
+
+<input id="taskName" placeholder="タスク名" required>
+
+<input id="businessDay" type="number" min="1" max="30" placeholder="営業日">
+
+<button>追加</button>
+
+</form>
+
+</div>
+
+<div class="card">
+
+<h3 style="cursor:pointer;user-select:none" onclick="toggleTaskList()">
+登録タスク <span id="taskToggleIcon">▲</span>
+</h3>
+
+<div id="taskListWrap">
+<ul id="taskList"></ul>
+</div>
+
+</div>
+
+<div class="card">
+
+<button id="prev">←</button>
+<button id="todayBtn">今日</button>
+<button id="next">→</button>
+
+<span id="monthLabel"></span>
+
+<div class="grid" id="calendar"></div>
+
+</div>
+
+</div>
+
+<div id="holidayPage" class="hidden">
+
+<div class="card">
+
+<h3>祝日追加（手動）</h3>
+
+<form id="holidayForm">
+
+<input type="date" id="holidayDate">
+
+<button>追加</button>
+
+</form>
+
+<h4>祝日一覧</h4>
+
+<ul id="holidayList"></ul>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* ========= デフォルト祝日 ========= */
+
+const defaultHolidays = [
+  "2025-01-01",
+  "2025-01-13",
+  "2025-02-11",
+  "2025-02-23",
+  "2025-02-24",
+  "2025-03-20",
+  "2025-04-29",
+  "2025-05-03",
+  "2025-05-04",
+  "2025-05-05",
+  "2025-05-06",
+  "2025-07-21",
+  "2025-08-11",
+  "2025-09-15",
+  "2025-09-23",
+  "2025-10-13",
+  "2025-11-03",
+  "2025-11-23",
+  "2025-11-24",
+  "2026-01-01",
+  "2026-01-12",
+  "2026-02-11",
+  "2026-02-23",
+  "2026-03-20",
+  "2026-04-29",
+  "2026-05-03",
+  "2026-05-04",
+  "2026-05-05",
+  "2026-05-06",
+  "2026-07-20",
+  "2026-08-11",
+  "2026-09-21",
+  "2026-09-22",
+  "2026-09-23",
+  "2026-10-12",
+  "2026-11-03",
+  "2026-11-23",
+  "2027-01-01",
+  "2027-01-11",
+  "2027-02-11",
+  "2027-02-23",
+  "2027-03-21",
+  "2027-03-22",
+  "2027-04-29",
+  "2027-05-03",
+  "2027-05-04",
+  "2027-05-05",
+  "2027-07-19",
+  "2027-08-11",
+  "2027-09-20",
+  "2027-09-23",
+  "2027-10-11",
+  "2027-11-03",
+  "2027-11-23"
+]
+
+/* ========= 保存 ========= */
+
+let tasks=JSON.parse(localStorage.getItem("tasks")||"[]")
+let events=JSON.parse(localStorage.getItem("events")||"{}")
+let extraHolidays=JSON.parse(localStorage.getItem("extraHolidays")||"[]")
+
+function save(){
+
+localStorage.setItem("tasks",JSON.stringify(tasks))
+localStorage.setItem("events",JSON.stringify(events))
+localStorage.setItem("extraHolidays",JSON.stringify(extraHolidays))
+
+}
+
+/* ========= バックアップ ========= */
+
+function downloadBackup(){
+
+let data={
+tasks,
+events,
+extraHolidays
+}
+
+let blob=new Blob(
+[JSON.stringify(data,null,2)],
+{type:"application/json"}
+)
+
+let a=document.createElement("a")
+
+a.href=URL.createObjectURL(blob)
+
+a.download="calendar_backup_"+new Date().toISOString().slice(0,10)+".json"
+
+a.click()
+
+}
+
+/* ========= 復元 ========= */
+
+function restoreBackup(event){
+
+const file=event.target.files[0]
+
+if(!file) return
+
+const reader=new FileReader()
+
+reader.onload=function(e){
+
+const data=JSON.parse(e.target.result)
+
+tasks=data.tasks||[]
+events=data.events||{}
+extraHolidays=data.extraHolidays||[]
+
+save()
+
+renderTasks()
+renderHolidays()
+renderCalendar()
+
+alert("復元完了")
+
+}
+
+reader.readAsText(file)
+
+}
+
+/* ========= 共通 ========= */
+
+let current=new Date()
+
+function format(date){
+
+let y=date.getFullYear()
+let m=(date.getMonth()+1).toString().padStart(2,'0')
+let d=date.getDate().toString().padStart(2,'0')
+
+return `${y}-${m}-${d}`
+
+}
+
+function isHoliday(date){
+
+let full=format(date)
+
+if(defaultHolidays.includes(full)) return true
+
+if(extraHolidays.includes(full)) return true
+
+return false
+
+}
+
+function isBusinessDay(date){
+
+if(date.getDay()==0||date.getDay()==6) return false
+
+if(isHoliday(date)) return false
+
+return true
+
+}
+
+function businessDayDate(year,month,n){
+
+let d=new Date(year,month,1)
+
+let list=[]
+
+while(d.getMonth()==month){
+
+if(isBusinessDay(d)) list.push(new Date(d))
+
+d.setDate(d.getDate()+1)
+
+}
+
+if(n>list.length) return list[list.length-1]
+
+return list[n-1]
+
+}
+
+function businessDayNumber(date){
+
+let y=date.getFullYear()
+let m=date.getMonth()
+let target=format(date)
+let d=new Date(y,m,1)
+let count=0
+
+while(d.getMonth()==m){
+
+if(isBusinessDay(d)){
+count++
+if(format(d)==target) return count
+}
+
+d.setDate(d.getDate()+1)
+
+}
+
+return 0
+
+}
+
+/* ========= タスク ========= */
+
+function renderTasks(){
+
+taskList.innerHTML=""
+
+tasks.forEach((t,i)=>{
+
+let li=document.createElement("li")
+
+li.textContent=`${t.name} (第${t.day}営業日)`
+
+let del=document.createElement("button")
+
+del.textContent="削除"
+
+del.onclick=()=>{
+
+tasks.splice(i,1)
+
+save()
+
+renderTasks()
+renderCalendar()
+
+}
+
+li.appendChild(del)
+
+taskList.appendChild(li)
+
+})
+
+}
+
+/* ========= 祝日 ========= */
+
+function renderHolidays(){
+
+holidayList.innerHTML=""
+
+defaultHolidays.forEach(h=>{
+
+let li=document.createElement("li")
+
+li.textContent=h+" (デフォルト)"
+
+li.style.color="#888"
+
+holidayList.appendChild(li)
+
+})
+
+extraHolidays.forEach((h,i)=>{
+
+let li=document.createElement("li")
+
+li.textContent=h
+
+let del=document.createElement("button")
+
+del.textContent="削除"
+
+del.onclick=()=>{
+
+extraHolidays.splice(i,1)
+
+save()
+
+renderHolidays()
+renderCalendar()
+
+}
+
+li.appendChild(del)
+
+holidayList.appendChild(li)
+
+})
+
+}
+
+holidayForm.onsubmit=e=>{
+
+e.preventDefault()
+
+let val=holidayDate.value
+
+if(!val) return
+
+if(!extraHolidays.includes(val)&&!defaultHolidays.includes(val)){
+
+extraHolidays.push(val)
+
+save()
+
+}
+
+holidayForm.reset()
+
+renderHolidays()
+renderCalendar()
+
+}
+
+/* ========= カレンダー ========= */
+
+function renderCalendar(){
+
+calendar.innerHTML=""
+
+let y=current.getFullYear()
+let m=current.getMonth()
+
+monthLabel.textContent=`${y}/${m+1}`
+
+let today=new Date()
+
+let week=["日","月","火","水","木","金","土"]
+
+week.forEach(w=>{
+
+let h=document.createElement("div")
+
+h.className="header"
+
+h.textContent=w
+
+calendar.appendChild(h)
+
+})
+
+let first=new Date(y,m,1)
+let last=new Date(y,m+1,0)
+
+for(let i=0;i<first.getDay();i++)
+calendar.appendChild(document.createElement("div"))
+
+for(let d=1;d<=last.getDate();d++){
+
+let date=new Date(y,m,d)
+
+let key=format(date)
+
+let cell=document.createElement("div")
+
+cell.className="cell"
+
+if(format(today)==key)
+cell.classList.add("today")
+
+let dateDiv=document.createElement("div")
+
+dateDiv.className="date"
+
+if(isHoliday(date)){
+  dateDiv.classList.add("holiday")
+  dateDiv.textContent=d+" 祝"
+}else{
+  dateDiv.textContent=d
+}
+
+cell.appendChild(dateDiv)
+
+/* 営業日タスク */
+
+let monthKey=y+"-"+String(m+1).padStart(2,"0")
+
+tasks.forEach((t,taskIdx)=>{
+
+let effectiveDay=(t.overrides&&t.overrides[monthKey])?t.overrides[monthKey]:t.day
+
+let bd=businessDayDate(y,m,effectiveDay)
+
+if(bd.getDate()==d){
+
+let div=document.createElement("div")
+
+div.className="task"
+
+let label=t.name+" (第"+effectiveDay+"営業日"
+if(t.overrides&&t.overrides[monthKey]) label+="*"
+label+=")"
+div.textContent=label
+
+div.draggable=true
+
+div.addEventListener("dragstart",ev=>{
+
+ev.dataTransfer.setData("text",JSON.stringify({
+type:"task",
+taskIdx:taskIdx,
+fromMonthKey:monthKey,
+text:t.name
+}))
+
+div.style.opacity="0.4"
+
+})
+
+div.addEventListener("dragend",()=>{
+
+div.style.opacity="1"
+
+})
+
+cell.appendChild(div)
+
+}
+
+})
+
+/* 通常予定 */
+
+if(events[key]){
+
+events[key].forEach((ev,i)=>{
+
+let e=document.createElement("div")
+
+e.className="event"
+
+e.draggable=true
+
+e.addEventListener("dragstart",ev2=>{
+
+ev2.stopPropagation()
+
+ev2.dataTransfer.setData("text",JSON.stringify({
+type:"event",
+fromKey:key,
+index:i,
+text:ev
+}))
+
+e.style.opacity="0.4"
+
+})
+
+e.addEventListener("dragend",()=>{
+
+e.style.opacity="1"
+
+})
+
+let span=document.createElement("span")
+
+span.textContent=ev
+
+let del=document.createElement("button")
+
+del.textContent="✕"
+
+del.onclick=ev2=>{
+
+ev2.stopPropagation()
+
+events[key].splice(i,1)
+
+if(events[key].length==0)
+delete events[key]
+
+save()
+
+renderCalendar()
+
+}
+
+e.appendChild(span)
+e.appendChild(del)
+
+cell.appendChild(e)
+
+})
+
+}
+
+cell.addEventListener("dragover",ev2=>{
+
+ev2.preventDefault()
+
+cell.style.background="#f0fff0"
+
+})
+
+cell.addEventListener("dragleave",()=>{
+
+cell.style.background=""
+
+})
+
+cell.addEventListener("drop",ev2=>{
+
+ev2.preventDefault()
+
+cell.style.background=""
+
+let data=JSON.parse(ev2.dataTransfer.getData("text"))
+
+if(data.type=="event"){
+
+events[data.fromKey].splice(data.index,1)
+
+if(events[data.fromKey].length==0)
+delete events[data.fromKey]
+
+if(!events[key]) events[key]=[]
+
+events[key].push(data.text)
+
+save()
+
+renderCalendar()
+
+}else if(data.type=="task"){
+
+let parts=key.split("-")
+let targetDate=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]))
+let bdNum=businessDayNumber(targetDate)
+
+if(bdNum===0){
+alert("営業日でない日にはタスクを移動できません。\n（土日・祝日はドロップ不可）")
+return
+}
+
+let task=tasks[data.taskIdx]
+let curMonthKey=data.fromMonthKey
+let oldDay=(task.overrides&&task.overrides[curMonthKey])?task.overrides[curMonthKey]:task.day
+
+if(!task.overrides) task.overrides={}
+task.overrides[curMonthKey]=bdNum
+
+save()
+
+renderTasks()
+renderCalendar()
+
+
+}
+
+})
+
+cell.onclick=()=>{
+
+let t=prompt("予定")
+
+if(!t) return
+
+if(!events[key]) events[key]=[]
+
+events[key].push(t)
+
+save()
+
+renderCalendar()
+
+}
+
+calendar.appendChild(cell)
+
+}
+
+}
+
+/* ========= タスク一覧トグル ========= */
+
+function toggleTaskList(){
+
+let wrap=document.getElementById("taskListWrap")
+let icon=document.getElementById("taskToggleIcon")
+
+if(wrap.style.display=="none"){
+wrap.style.display=""
+icon.textContent="▲"
+}else{
+wrap.style.display="none"
+icon.textContent="▼"
+}
+
+}
+
+/* ========= ページ ========= */
+
+function showPage(p){
+
+calendarPage.classList.add("hidden")
+holidayPage.classList.add("hidden")
+
+if(p=="calendar") calendarPage.classList.remove("hidden")
+if(p=="holiday") holidayPage.classList.remove("hidden")
+
+}
+
+/* ========= フォーム ========= */
+
+taskForm.onsubmit=e=>{
+
+e.preventDefault()
+
+tasks.push({
+name:taskName.value,
+day:parseInt(businessDay.value)
+})
+
+save()
+
+taskForm.reset()
+
+renderTasks()
+renderCalendar()
+
+}
+
+/* ========= 月移動 ========= */
+
+prev.onclick=()=>{
+current.setMonth(current.getMonth()-1)
+renderCalendar()
+}
+
+next.onclick=()=>{
+current.setMonth(current.getMonth()+1)
+renderCalendar()
+}
+
+todayBtn.onclick=()=>{
+current=new Date()
+renderCalendar()
+}
+
+/* ========= 初期 ========= */
+
+renderTasks()
+renderHolidays()
+renderCalendar()
+
+</script>
+
+</body>
+</html>
