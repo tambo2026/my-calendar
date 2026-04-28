@@ -6,10 +6,16 @@
 
 <style>
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+*{box-sizing:border-box}
+
 body{
-font-family:Arial;
-background:#f4f4f4;
-margin:20px
+font-family:'Noto Sans JP',Arial,sans-serif;
+background:linear-gradient(135deg,#e8f0fe 0%,#f3e8ff 100%);
+min-height:100vh;
+margin:0;
+padding:24px
 }
 
 .container{
@@ -17,18 +23,67 @@ max-width:1100px;
 margin:auto
 }
 
-.card{
-background:white;
-padding:16px;
-border-radius:10px;
-margin-bottom:15px
+h1{
+font-size:1.6rem;
+font-weight:700;
+color:#3d3d5c;
+margin-bottom:16px;
+letter-spacing:.04em
 }
 
+.card{
+background:rgba(255,255,255,0.85);
+backdrop-filter:blur(8px);
+padding:20px;
+border-radius:16px;
+margin-bottom:16px;
+box-shadow:0 4px 20px rgba(100,100,160,0.10);
+border:1px solid rgba(255,255,255,0.7)
+}
+
+/* ボタン */
 button{
 cursor:pointer;
+margin-right:6px;
+padding:6px 14px;
+border:none;
+border-radius:8px;
+background:linear-gradient(135deg,#667eea,#764ba2);
+color:white;
+font-size:13px;
+font-family:inherit;
+font-weight:700;
+box-shadow:0 2px 8px rgba(102,126,234,0.3);
+transition:transform .15s,box-shadow .15s
+}
+
+button:hover{
+transform:translateY(-1px);
+box-shadow:0 4px 14px rgba(102,126,234,0.45)
+}
+
+button:active{
+transform:translateY(0)
+}
+
+/* input */
+input[type="text"],input[type="number"],input[type="date"],input:not([type]){
+padding:6px 10px;
+border:1.5px solid #d0d0e0;
+border-radius:8px;
+font-family:inherit;
+font-size:13px;
+outline:none;
+transition:border-color .2s,box-shadow .2s;
 margin-right:6px
 }
 
+input:focus{
+border-color:#667eea;
+box-shadow:0 0 0 3px rgba(102,126,234,0.15)
+}
+
+/* グリッド */
 .grid{
 display:grid;
 grid-template-columns:repeat(7,1fr);
@@ -36,58 +91,130 @@ gap:6px
 }
 
 .header{
-font-weight:bold;
-text-align:center
+font-weight:700;
+text-align:center;
+color:#555;
+padding:6px 0;
+font-size:13px
 }
 
+/* セル */
 .cell{
-border:1px solid #ddd;
-border-radius:6px;
+border:1px solid #e2e2f0;
+border-radius:10px;
 min-height:95px;
-padding:4px;
+padding:5px;
 background:white;
-font-size:12px
+font-size:12px;
+transition:background .15s,box-shadow .15s,transform .1s;
+position:relative
 }
 
+.cell:hover{
+box-shadow:0 3px 12px rgba(100,100,180,0.12);
+transform:translateY(-1px)
+}
+
+/* 今日 */
 .today{
-background:#fff3a0
+background:linear-gradient(135deg,#fffde7,#fff9c4);
+border:2px solid #f9c642;
+box-shadow:0 2px 10px rgba(249,198,66,0.25)
 }
 
 .date{
-font-weight:bold
+font-weight:700;
+color:#3d3d5c
 }
 
 .holiday{
-color:red
+color:#e53935
 }
 
+/* タスク（営業日） */
 .task{
-background:#e2f0ff;
-border-radius:4px;
-padding:2px;
-margin-top:2px;
-cursor:grab
+background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+border-left:3px solid #3b82f6;
+border-radius:5px;
+padding:3px 5px;
+margin-top:3px;
+cursor:grab;
+font-size:11px;
+color:#1e3a5f;
+transition:opacity .2s,transform .15s,box-shadow .15s
 }
 
+.task:hover{
+box-shadow:0 2px 8px rgba(59,130,246,0.25);
+transform:translateY(-1px)
+}
+
+/* 通常予定 */
 .event{
-background:#ffe3bf;
-border-radius:4px;
-padding:2px;
-margin-top:2px;
+background:linear-gradient(135deg,#fef3c7,#fde68a);
+border-left:3px solid #f59e0b;
+border-radius:5px;
+padding:3px 5px;
+margin-top:3px;
 display:flex;
 justify-content:space-between;
-cursor:grab
+align-items:center;
+cursor:grab;
+font-size:11px;
+color:#78350f;
+transition:opacity .2s,transform .15s,box-shadow .15s
+}
+
+.event:hover{
+box-shadow:0 2px 8px rgba(245,158,11,0.25);
+transform:translateY(-1px)
 }
 
 .event button{
 border:none;
 background:none;
-color:red
+color:#dc2626;
+padding:0 2px;
+margin:0;
+font-size:13px;
+box-shadow:none;
+min-width:unset
 }
 
-.hidden{
-display:none
+.event button:hover{
+background:none;
+transform:scale(1.2);
+box-shadow:none
 }
+
+/* 月ラベル */
+#monthLabel{
+font-size:1.2rem;
+font-weight:700;
+color:#3d3d5c;
+margin-left:12px;
+vertical-align:middle
+}
+
+/* タスク一覧トグル */
+#taskListWrap ul{
+padding-left:18px;
+margin:8px 0 0
+}
+
+#taskListWrap li{
+margin-bottom:6px;
+color:#3d3d5c
+}
+
+/* ドロップハイライト */
+.drop-highlight{
+background:linear-gradient(135deg,#ecfdf5,#d1fae5) !important;
+border:2px dashed #34d399 !important;
+transform:translateY(-1px)
+}
+
+.hidden{display:none}
 
 </style>
 </head>
@@ -667,13 +794,13 @@ cell.addEventListener("dragover",ev2=>{
 
 ev2.preventDefault()
 
-cell.style.background="#f0fff0"
+cell.classList.add("drop-highlight")
 
 })
 
 cell.addEventListener("dragleave",()=>{
 
-cell.style.background=""
+cell.classList.remove("drop-highlight")
 
 })
 
@@ -681,7 +808,7 @@ cell.addEventListener("drop",ev2=>{
 
 ev2.preventDefault()
 
-cell.style.background=""
+cell.classList.remove("drop-highlight")
 
 let data=JSON.parse(ev2.dataTransfer.getData("text"))
 
