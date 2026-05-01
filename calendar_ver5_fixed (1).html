@@ -6,16 +6,20 @@
 
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 *{box-sizing:border-box}
 
+/* =====================
+   ベース
+   ===================== */
 body{
 font-family:'Noto Sans JP',Arial,sans-serif;
-background:linear-gradient(135deg,#e8f0fe 0%,#f3e8ff 100%);
+background:linear-gradient(160deg,#f0f6ff 0%,#fdf6ee 100%);
 min-height:100vh;
 margin:0;
-padding:24px
+padding:24px;
+color:#374151
 }
 
 .container{
@@ -23,136 +27,170 @@ max-width:1100px;
 margin:auto
 }
 
+/* タイトル */
 h1{
-font-size:1.6rem;
+font-size:1.5rem;
 font-weight:700;
-color:#3d3d5c;
+color:#374151;
 margin-bottom:16px;
-letter-spacing:.04em
+padding-bottom:10px;
+border-bottom:2px solid #e5e7eb;
+letter-spacing:.03em
 }
 
+h3{
+font-size:1rem;
+font-weight:700;
+color:#374151;
+margin:0 0 12px;
+padding-left:10px;
+border-left:3px solid #93c5fd
+}
+
+/* カード */
 .card{
-background:rgba(255,255,255,0.85);
-backdrop-filter:blur(8px);
-padding:20px;
-border-radius:16px;
-margin-bottom:16px;
-box-shadow:0 4px 20px rgba(100,100,160,0.10);
-border:1px solid rgba(255,255,255,0.7)
+background:rgba(255,255,255,0.9);
+backdrop-filter:blur(6px);
+padding:18px 20px;
+border-radius:14px;
+margin-bottom:14px;
+box-shadow:0 2px 12px rgba(0,0,0,0.07);
+border:1px solid #e5e7eb
 }
 
-/* ボタン */
+/* =====================
+   ボタン（落ち着いたグレー系パステル）
+   ===================== */
 button{
 cursor:pointer;
 margin-right:6px;
-padding:6px 14px;
-border:none;
+padding:6px 16px;
+border:1px solid #d1d5db;
 border-radius:8px;
-background:linear-gradient(135deg,#667eea,#764ba2);
-color:white;
+background:#f9fafb;
+color:#374151;
 font-size:13px;
 font-family:inherit;
-font-weight:700;
-box-shadow:0 2px 8px rgba(102,126,234,0.3);
-transition:transform .15s,box-shadow .15s
+font-weight:500;
+box-shadow:0 1px 3px rgba(0,0,0,0.08);
+transition:background .15s,box-shadow .15s,transform .12s
 }
 
 button:hover{
-transform:translateY(-1px);
-box-shadow:0 4px 14px rgba(102,126,234,0.45)
+background:#f1f5f9;
+box-shadow:0 2px 8px rgba(0,0,0,0.12);
+transform:translateY(-1px)
 }
 
 button:active{
-transform:translateY(0)
+transform:translateY(0);
+background:#e5e7eb
 }
 
-/* input */
+/* =====================
+   input
+   ===================== */
 input[type="text"],input[type="number"],input[type="date"],input:not([type]){
-padding:6px 10px;
-border:1.5px solid #d0d0e0;
+padding:6px 11px;
+border:1.5px solid #d1d5db;
 border-radius:8px;
 font-family:inherit;
 font-size:13px;
 outline:none;
+background:#fff;
 transition:border-color .2s,box-shadow .2s;
 margin-right:6px
 }
 
 input:focus{
-border-color:#667eea;
-box-shadow:0 0 0 3px rgba(102,126,234,0.15)
+border-color:#93c5fd;
+box-shadow:0 0 0 3px rgba(147,197,253,0.25)
 }
 
-/* グリッド */
+/* =====================
+   曜日ヘッダー
+   ===================== */
 .grid{
 display:grid;
 grid-template-columns:repeat(7,1fr);
-gap:6px
+gap:5px
 }
 
 .header{
 font-weight:700;
 text-align:center;
-color:#555;
-padding:6px 0;
-font-size:13px
+font-size:12px;
+padding:5px 0;
+color:#6b7280;
+letter-spacing:.05em
 }
 
-/* セル */
+/* 日曜・土曜の色分け（1番目・7番目） */
+.header:nth-child(7n+1){color:#f87171}
+.header:nth-child(7n){color:#60a5fa}
+
+/* =====================
+   カレンダーセル
+   ===================== */
 .cell{
-border:1px solid #e2e2f0;
+border:1px solid #e5e7eb;
 border-radius:10px;
 min-height:95px;
-padding:5px;
-background:white;
+padding:5px 5px 4px;
+background:#fff;
 font-size:12px;
-transition:background .15s,box-shadow .15s,transform .1s;
+transition:box-shadow .15s,transform .12s;
 position:relative
 }
 
 .cell:hover{
-box-shadow:0 3px 12px rgba(100,100,180,0.12);
+box-shadow:0 3px 10px rgba(0,0,0,0.09);
 transform:translateY(-1px)
 }
 
 /* 今日 */
 .today{
-background:linear-gradient(135deg,#fffde7,#fff9c4);
-border:2px solid #f9c642;
-box-shadow:0 2px 10px rgba(249,198,66,0.25)
+background:linear-gradient(160deg,#fffde7,#fff9c4);
+border:2px solid #fbbf24;
+box-shadow:0 2px 8px rgba(251,191,36,0.2)
 }
 
+/* 日付数字 */
 .date{
 font-weight:700;
-color:#3d3d5c
+font-size:13px;
+color:#374151
 }
 
-.holiday{
-color:#e53935
-}
+.holiday{color:#ef4444}
 
-/* タスク（営業日） */
+/* =====================
+   営業日タスク（青パステル）※変更なし
+   ===================== */
 .task{
 background:linear-gradient(135deg,#dbeafe,#bfdbfe);
-border-left:3px solid #3b82f6;
+border-left:3px solid #60a5fa;
 border-radius:5px;
 padding:3px 5px;
 margin-top:3px;
 cursor:grab;
 font-size:11px;
 color:#1e3a5f;
+line-height:1.4;
 transition:opacity .2s,transform .15s,box-shadow .15s
 }
 
 .task:hover{
-box-shadow:0 2px 8px rgba(59,130,246,0.25);
+box-shadow:0 2px 8px rgba(96,165,250,0.3);
 transform:translateY(-1px)
 }
 
-/* 通常予定 */
+/* =====================
+   通常予定（黄パステル）※変更なし
+   ===================== */
 .event{
 background:linear-gradient(135deg,#fef3c7,#fde68a);
-border-left:3px solid #f59e0b;
+border-left:3px solid #fbbf24;
 border-radius:5px;
 padding:3px 5px;
 margin-top:3px;
@@ -162,55 +200,85 @@ align-items:center;
 cursor:grab;
 font-size:11px;
 color:#78350f;
+line-height:1.4;
 transition:opacity .2s,transform .15s,box-shadow .15s
 }
 
 .event:hover{
-box-shadow:0 2px 8px rgba(245,158,11,0.25);
+box-shadow:0 2px 8px rgba(251,191,36,0.3);
 transform:translateY(-1px)
 }
 
+/* 通常予定の削除ボタン：親スタイルをリセット */
 .event button{
 border:none;
 background:none;
-color:#dc2626;
+color:#ef4444;
 padding:0 2px;
 margin:0;
-font-size:13px;
+font-size:14px;
 box-shadow:none;
-min-width:unset
+font-weight:400;
+line-height:1
 }
 
 .event button:hover{
 background:none;
-transform:scale(1.2);
-box-shadow:none
+box-shadow:none;
+transform:scale(1.25)
 }
 
-/* 月ラベル */
+/* =====================
+   月ナビゲーション
+   ===================== */
+.month-nav{
+display:flex;
+align-items:center;
+gap:8px;
+margin-bottom:12px
+}
+
 #monthLabel{
-font-size:1.2rem;
+font-size:1.15rem;
 font-weight:700;
-color:#3d3d5c;
-margin-left:12px;
-vertical-align:middle
+color:#374151;
+min-width:80px
 }
 
-/* タスク一覧トグル */
+/* =====================
+   タスク一覧
+   ===================== */
 #taskListWrap ul{
 padding-left:18px;
-margin:8px 0 0
+margin:8px 0 0;
+list-style:none;
+padding-left:0
 }
 
 #taskListWrap li{
 margin-bottom:6px;
-color:#3d3d5c
+color:#374151;
+display:flex;
+align-items:center;
+gap:8px;
+padding:5px 8px;
+border-radius:7px;
+background:#f8fafc;
+border:1px solid #e5e7eb;
+font-size:13px
 }
 
-/* ドロップハイライト */
+#taskListWrap li button{
+padding:3px 10px;
+font-size:12px
+}
+
+/* =====================
+   ドロップハイライト
+   ===================== */
 .drop-highlight{
 background:linear-gradient(135deg,#ecfdf5,#d1fae5) !important;
-border:2px dashed #34d399 !important;
+border:2px dashed #6ee7b7 !important;
 transform:translateY(-1px)
 }
 
@@ -223,16 +291,19 @@ transform:translateY(-1px)
 
 <div class="container">
 
-<h1>営業日カレンダー Ver5</h1>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #e5e7eb">
 
-<button onclick="downloadBackup()">バックアップ保存</button>
+<h1 style="margin:0;border:none;padding:0">📅 営業日カレンダー</h1>
 
-<input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(event)">
-
-<button onclick="document.getElementById('restoreFile').click()">バックアップ復元</button>
-
+<div style="display:flex;gap:6px;flex-wrap:wrap">
 <button onclick="showPage('calendar')">カレンダー</button>
 <button onclick="showPage('holiday')">祝日管理</button>
+<button onclick="downloadBackup()">💾 バックアップ</button>
+<input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(event)">
+<button onclick="document.getElementById('restoreFile').click()">📂 復元</button>
+</div>
+
+</div>
 
 <div id="calendarPage">
 
@@ -266,11 +337,12 @@ transform:translateY(-1px)
 
 <div class="card">
 
+<div class="month-nav">
 <button id="prev">←</button>
 <button id="todayBtn">今日</button>
 <button id="next">→</button>
-
 <span id="monthLabel"></span>
+</div>
 
 <div class="grid" id="calendar"></div>
 
