@@ -913,13 +913,41 @@ cell.appendChild(div)
 
 /* 毎月日付タスク */
 
-dateTasks.forEach(t=>{
+dateTasks.forEach((t,dateTaskIdx)=>{
 
-if(t.date===d){
+let effectiveDate=(t.overrides&&t.overrides[monthKey])?t.overrides[monthKey]:t.date
+
+if(effectiveDate===d){
 
 let div=document.createElement("div")
 div.className="date-task"
-div.textContent=t.name+" (毎月"+t.date+"日)"
+
+let label=t.name+" (毎月"+effectiveDate+"日"
+if(t.overrides&&t.overrides[monthKey]) label+="*"
+label+=")"
+div.textContent=label
+
+div.draggable=true
+
+div.addEventListener("dragstart",ev=>{
+
+ev.dataTransfer.setData("text",JSON.stringify({
+type:"date-task",
+dateTaskIdx:dateTaskIdx,
+fromMonthKey:monthKey,
+text:t.name
+}))
+
+div.style.opacity="0.4"
+
+})
+
+div.addEventListener("dragend",()=>{
+
+div.style.opacity="1"
+
+})
+
 cell.appendChild(div)
 
 }
@@ -1041,7 +1069,6 @@ return
 
 let task=tasks[data.taskIdx]
 let curMonthKey=data.fromMonthKey
-let oldDay=(task.overrides&&task.overrides[curMonthKey])?task.overrides[curMonthKey]:task.day
 
 if(!task.overrides) task.overrides={}
 task.overrides[curMonthKey]=bdNum
@@ -1051,6 +1078,21 @@ save()
 renderTasks()
 renderCalendar()
 
+}else if(data.type=="date-task"){
+
+let parts=key.split("-")
+let newDate=parseInt(parts[2])
+
+let dateTask=dateTasks[data.dateTaskIdx]
+let curMonthKey=data.fromMonthKey
+
+if(!dateTask.overrides) dateTask.overrides={}
+dateTask.overrides[curMonthKey]=newDate
+
+save()
+
+renderTasks()
+renderCalendar()
 
 }
 
