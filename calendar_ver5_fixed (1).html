@@ -274,6 +274,74 @@ font-size:12px
 }
 
 /* =====================
+   毎月日付タスク（緑パステル）
+   ===================== */
+.date-task{
+background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+border-left:3px solid #34d399;
+border-radius:5px;
+padding:3px 5px;
+margin-top:3px;
+cursor:default;
+font-size:11px;
+color:#064e3b;
+line-height:1.4;
+transition:box-shadow .15s
+}
+
+.date-task:hover{
+box-shadow:0 2px 8px rgba(52,211,153,0.3)
+}
+
+/* =====================
+   タブUI
+   ===================== */
+.tab-btns{
+display:flex;
+gap:6px;
+margin-bottom:14px
+}
+
+.tab-btn{
+padding:5px 16px;
+border-radius:20px;
+border:1.5px solid #d1d5db;
+background:#f9fafb;
+color:#6b7280;
+font-size:13px;
+font-weight:500;
+cursor:pointer;
+transition:all .15s;
+box-shadow:none
+}
+
+.tab-btn.active{
+background:#dbeafe;
+border-color:#93c5fd;
+color:#1e40af;
+font-weight:700
+}
+
+.tab-btn:hover:not(.active){
+background:#f1f5f9;
+transform:none;
+box-shadow:none
+}
+
+/* タスク一覧バッジ */
+.badge{
+display:inline-block;
+font-size:10px;
+font-weight:700;
+padding:1px 7px;
+border-radius:10px;
+margin-right:6px
+}
+
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:#d1fae5;color:#065f46}
+
+/* =====================
    ドロップハイライト
    ===================== */
 .drop-highlight{
@@ -309,17 +377,28 @@ transform:translateY(-1px)
 
 <div class="card">
 
-<h3>営業日タスク追加</h3>
+<h3>繰り返しタスク追加</h3>
 
+<div class="tab-btns">
+<button type="button" class="tab-btn active" id="tabBizBtn" onclick="switchTab('biz')">第●営業日</button>
+<button type="button" class="tab-btn" id="tabDateBtn" onclick="switchTab('date')">毎月●日</button>
+</div>
+
+<div id="tabBiz">
 <form id="taskForm">
-
 <input id="taskName" placeholder="タスク名" required>
-
-<input id="businessDay" type="number" min="1" max="30" placeholder="営業日">
-
+<input id="businessDay" type="number" min="1" max="30" placeholder="第●営業日">
 <button>追加</button>
-
 </form>
+</div>
+
+<div id="tabDate" class="hidden">
+<form id="dateTaskForm">
+<input id="dateTaskName" placeholder="タスク名" required>
+<input id="dateTaskDay" type="number" min="1" max="31" placeholder="毎月●日">
+<button>追加</button>
+</form>
+</div>
 
 </div>
 
@@ -438,12 +517,14 @@ const defaultHolidays = [
 /* ========= 保存 ========= */
 
 let tasks=JSON.parse(localStorage.getItem("tasks")||"[]")
+let dateTasks=JSON.parse(localStorage.getItem("dateTasks")||"[]")
 let events=JSON.parse(localStorage.getItem("events")||"{}")
 let extraHolidays=JSON.parse(localStorage.getItem("extraHolidays")||"[]")
 
 function save(){
 
 localStorage.setItem("tasks",JSON.stringify(tasks))
+localStorage.setItem("dateTasks",JSON.stringify(dateTasks))
 localStorage.setItem("events",JSON.stringify(events))
 localStorage.setItem("extraHolidays",JSON.stringify(extraHolidays))
 
@@ -455,6 +536,7 @@ function downloadBackup(){
 
 let data={
 tasks,
+dateTasks,
 events,
 extraHolidays
 }
@@ -489,6 +571,7 @@ reader.onload=function(e){
 const data=JSON.parse(e.target.result)
 
 tasks=data.tasks||[]
+dateTasks=data.dateTasks||[]
 events=data.events||{}
 extraHolidays=data.extraHolidays||[]
 
@@ -591,29 +674,60 @@ function renderTasks(){
 
 taskList.innerHTML=""
 
-tasks.forEach((t,i)=>{
+/* 営業日タスク：day 昇順 */
+let sortedBiz=tasks.map((t,origIdx)=>({t,origIdx}))
+.sort((a,b)=>a.t.day-b.t.day)
+
+sortedBiz.forEach(({t,origIdx})=>{
 
 let li=document.createElement("li")
 
-li.textContent=`${t.name} (第${t.day}営業日)`
+let badge=document.createElement("span")
+badge.className="badge badge-blue"
+badge.textContent="営業日"
+li.appendChild(badge)
+
+li.appendChild(document.createTextNode(t.name+" (第"+t.day+"営業日)"))
 
 let del=document.createElement("button")
-
 del.textContent="削除"
-
 del.onclick=()=>{
-
-tasks.splice(i,1)
-
+tasks.splice(origIdx,1)
 save()
-
 renderTasks()
 renderCalendar()
-
 }
 
 li.appendChild(del)
+taskList.appendChild(li)
 
+})
+
+/* 毎月日付タスク：date 昇順 */
+let sortedDate=dateTasks.map((t,origIdx)=>({t,origIdx}))
+.sort((a,b)=>a.t.date-b.t.date)
+
+sortedDate.forEach(({t,origIdx})=>{
+
+let li=document.createElement("li")
+
+let badge=document.createElement("span")
+badge.className="badge badge-green"
+badge.textContent="毎月"
+li.appendChild(badge)
+
+li.appendChild(document.createTextNode(t.name+" (毎月"+t.date+"日)"))
+
+let del=document.createElement("button")
+del.textContent="削除"
+del.onclick=()=>{
+dateTasks.splice(origIdx,1)
+save()
+renderTasks()
+renderCalendar()
+}
+
+li.appendChild(del)
 taskList.appendChild(li)
 
 })
@@ -791,6 +905,21 @@ div.style.opacity="1"
 
 })
 
+cell.appendChild(div)
+
+}
+
+})
+
+/* 毎月日付タスク */
+
+dateTasks.forEach(t=>{
+
+if(t.date===d){
+
+let div=document.createElement("div")
+div.className="date-task"
+div.textContent=t.name+" (毎月"+t.date+"日)"
 cell.appendChild(div)
 
 }
@@ -978,6 +1107,24 @@ if(p=="holiday") holidayPage.classList.remove("hidden")
 
 }
 
+/* ========= タブ切り替え ========= */
+
+function switchTab(tab){
+
+if(tab==="biz"){
+tabBiz.classList.remove("hidden")
+tabDate.classList.add("hidden")
+tabBizBtn.classList.add("active")
+tabDateBtn.classList.remove("active")
+}else{
+tabBiz.classList.add("hidden")
+tabDate.classList.remove("hidden")
+tabBizBtn.classList.remove("active")
+tabDateBtn.classList.add("active")
+}
+
+}
+
 /* ========= フォーム ========= */
 
 taskForm.onsubmit=e=>{
@@ -992,6 +1139,24 @@ day:parseInt(businessDay.value)
 save()
 
 taskForm.reset()
+
+renderTasks()
+renderCalendar()
+
+}
+
+dateTaskForm.onsubmit=e=>{
+
+e.preventDefault()
+
+dateTasks.push({
+name:dateTaskName.value,
+date:parseInt(dateTaskDay.value)
+})
+
+save()
+
+dateTaskForm.reset()
 
 renderTasks()
 renderCalendar()
