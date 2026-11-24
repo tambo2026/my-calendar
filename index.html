@@ -189,6 +189,28 @@ box-shadow:0 2px 8px rgba(96,165,250,0.3);
 transform:translateY(-1px)
 }
 
+/* チェック（月次完了） */
+.check-hit{
+display:inline-block;
+padding:3px 6px 3px 2px;
+margin:-3px 0 -3px -2px;
+vertical-align:middle;
+cursor:pointer
+}
+
+.task-check{
+margin:0;
+vertical-align:middle;
+cursor:pointer;
+accent-color:#3b82f6
+}
+
+.date-task .task-check{accent-color:#10b981}
+
+.task.done,.date-task.done{opacity:.55}
+
+.task.done span,.date-task.done span{text-decoration:line-through}
+
 /* =====================
    通常予定（黄パステル）※変更なし
    ===================== */
@@ -810,6 +832,37 @@ renderCalendar()
 
 /* ========= カレンダー ========= */
 
+function makeCheck(t,monthKey,div){
+
+let cb=document.createElement("input")
+cb.type="checkbox"
+cb.className="task-check"
+cb.checked=!!(t.done&&t.done[monthKey])
+div.classList.toggle("done",cb.checked)
+
+let wrap=document.createElement("label")
+wrap.className="check-hit"
+wrap.appendChild(cb)
+
+/* タスクをクリックしても予定入力が開かないようにする */
+div.addEventListener("click",ev=>ev.stopPropagation())
+
+cb.addEventListener("change",()=>{
+
+if(!t.done) t.done={}
+if(cb.checked) t.done[monthKey]=true
+else delete t.done[monthKey]
+
+save()
+
+div.classList.toggle("done",cb.checked)
+
+})
+
+return wrap
+
+}
+
 function renderCalendar(){
 
 calendar.innerHTML=""
@@ -886,7 +939,10 @@ div.className="task"
 let label=t.name+" (第"+effectiveDay+"営業日"
 if(t.overrides&&t.overrides[monthKey]) label+="*"
 label+=")"
-div.textContent=label
+let span=document.createElement("span")
+span.textContent=label
+div.appendChild(makeCheck(t,monthKey,div))
+div.appendChild(span)
 
 div.draggable=true
 
@@ -905,7 +961,7 @@ div.style.opacity="0.4"
 
 div.addEventListener("dragend",()=>{
 
-div.style.opacity="1"
+div.style.opacity=""
 
 })
 
@@ -929,7 +985,10 @@ div.className="date-task"
 let label=t.name+" (毎月"+effectiveDate+"日"
 if(t.overrides&&t.overrides[monthKey]) label+="*"
 label+=")"
-div.textContent=label
+let span=document.createElement("span")
+span.textContent=label
+div.appendChild(makeCheck(t,monthKey,div))
+div.appendChild(span)
 
 div.draggable=true
 
@@ -948,7 +1007,7 @@ div.style.opacity="0.4"
 
 div.addEventListener("dragend",()=>{
 
-div.style.opacity="1"
+div.style.opacity=""
 
 })
 
