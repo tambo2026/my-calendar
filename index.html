@@ -847,6 +847,13 @@ wrap.appendChild(cb)
 /* タスクをクリックしても予定入力が開かないようにする */
 div.addEventListener("click",ev=>ev.stopPropagation())
 
+cb.addEventListener("keydown",ev=>{
+if(ev.key==="Enter"){
+ev.preventDefault()
+cb.click()
+}
+})
+
 cb.addEventListener("change",()=>{
 
 if(!t.done) t.done={}
